@@ -1,6 +1,6 @@
 # dontpastetheai.com
 
-![](./assets/og-image.svg)
+![](./assets/og-image.png)
 
 > A website you send to that one person who answers every question with eight hundred words of ChatGPT they clearly didn't read.
 
