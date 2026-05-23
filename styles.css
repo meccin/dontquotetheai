@@ -261,6 +261,44 @@ ol li::before {
 .url-tag-big:hover { transform: rotate(-1deg) translate(-1px, -1px); box-shadow: 5px 5px 0 var(--ink); }
 .url-tag-big:active { transform: rotate(-1deg) translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
 
+/* ---------- angry CTA ---------- */
+.cta-angry {
+  display: inline-block;
+  background: var(--stamp);
+  color: var(--paper-alt);
+  padding: var(--space-2) 18px;
+  font-family: var(--font-type);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transform: rotate(0.6deg);
+  border: 2px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.cta-angry:hover { transform: rotate(0.6deg) translate(-1px, -1px); box-shadow: 5px 5px 0 var(--ink); color: var(--paper-alt); }
+.cta-angry:active { transform: rotate(0.6deg) translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+
+/* ---------- calm CTA ---------- */
+.cta-calm {
+  display: inline-block;
+  background: #2f6b4a;
+  color: var(--paper-alt);
+  padding: var(--space-2) 18px;
+  font-family: var(--font-type);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transform: rotate(-0.6deg);
+  border: 2px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.cta-calm:hover { transform: rotate(-0.6deg) translate(-1px, -1px); box-shadow: 5px 5px 0 var(--ink); color: var(--paper-alt); }
+.cta-calm:active { transform: rotate(-0.6deg) translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+
 /* ---------- scribble & stamp ---------- */
 .scribble {
   position: absolute;
