@@ -148,33 +148,12 @@ for (const lang of languages) {
       );
     }
 
-    // 6: hreflang alternates — every language + x-default
-    const alternateRe =
-      /<link[^>]*\brel\s*=\s*"alternate"[^>]*\bhreflang\s*=\s*"([^"]+)"[^>]*\bhref\s*=\s*"([^"]+)"/gi;
-    const alternateAltRe =
-      /<link[^>]*\bhreflang\s*=\s*"([^"]+)"[^>]*\bhref\s*=\s*"([^"]+)"/gi;
-    const altMap = new Map();
-    for (const m of html.matchAll(alternateAltRe)) {
-      altMap.set(m[1], m[2]);
+    // 6: hreflang block has the sync markers (content is owned by sync-hreflang.mjs)
+    if (!html.includes("<!-- hreflang:start")) {
+      err(v.path, `Missing <!-- hreflang:start --> marker (run scripts/sync-hreflang.mjs)`);
     }
-
-    for (const other of languages) {
-      const wantUrl = v.urlFor(other.file);
-      const got = altMap.get(other.hreflang);
-      if (!got) {
-        err(
-          v.path,
-          `Missing <link rel="alternate" hreflang="${other.hreflang}">`
-        );
-      } else if (got !== wantUrl) {
-        err(
-          v.path,
-          `hreflang="${other.hreflang}" href="${got}" expected "${wantUrl}"`
-        );
-      }
-    }
-    if (!altMap.has("x-default")) {
-      err(v.path, `Missing <link rel="alternate" hreflang="x-default">`);
+    if (!html.includes("<!-- hreflang:end -->")) {
+      err(v.path, `Missing <!-- hreflang:end --> marker (run scripts/sync-hreflang.mjs)`);
     }
 
     // 7: og:image / twitter:image exist on disk

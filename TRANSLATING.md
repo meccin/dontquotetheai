@@ -8,9 +8,8 @@ If you get stuck, open a PR anyway — even half-finished. We'll help you across
 
 1. Pick a [BCP 47 language code](https://en.wikipedia.org/wiki/IETF_language_tag), lowercase, hyphenated (e.g. `es`, `pt-br`, `zh-tw`).
 2. Copy `index.html` → `<code>.html` and `angry/index.html` → `angry/<code>.html`. Translate the visible text in both.
-3. Add an entry for your language in `assets/translations.json`.
-4. Add an `<link rel="alternate" hreflang="...">` line to every other HTML file pointing at yours (smooth → smooth, angry → angry).
-5. Make an OG image (or just ship the SVG — we'll handle the PNG). Then open a PR.
+3. Register your language in `assets/translations.json` — CI handles the hreflang links across all pages.
+4. Make an OG image SVG (CI renders the PNG for you). Then open a PR.
 
 The [GitHub Action](.github/workflows/validate.yml) runs on your PR and tells you what's missing. You can run it locally first: `node scripts/check-translations.mjs`.
 
@@ -82,6 +81,7 @@ In each of your two new files, translate:
 - GitHub link, nohello/dontasktoask links, YouTube "mad" link
 - In angry files, the `../styles.css` and `../assets/` relative paths
 - `assets/copy.js` — it's shared by every page
+- The block between `<!-- hreflang:start -->` and `<!-- hreflang:end -->` markers in every HTML file (managed by CI — see step 6)
 
 ### 5. Register the language in `assets/translations.json`
 
@@ -98,19 +98,11 @@ One entry, once:
 
 Same `file` value applies to both smooth (`/es.html`) and angry (`/angry/es.html`). The dropdown in every existing page picks it up automatically — no per-file `<option>` edits.
 
-### 6. Add hreflang links to every other HTML file
+### 6. hreflang links
 
-These stay static (not JS-injected) so Bing, Yandex, and Baidu pick them up reliably. Add a line for your language to every existing HTML file's `<head>`. Smooth links to smooth, angry to angry:
+Skip this — CI does it for you. Just make sure your entry in `assets/translations.json` is correct. The next push to main runs `scripts/sync-hreflang.mjs` and updates every HTML file's hreflang block automatically (the block between the `<!-- hreflang:start -->` and `<!-- hreflang:end -->` markers). The validation check on your PR will show you a preview of what changed.
 
-```html
-<!-- in every smooth page -->
-<link rel="alternate" hreflang="xx-XX" href="https://dontpastetheai.com/yourfile.html">
-
-<!-- in every angry page -->
-<link rel="alternate" hreflang="xx-XX" href="https://dontpastetheai.com/angry/yourfile.html">
-```
-
-A sync script for this doesn't exist yet (PRs welcome). For now: the validation script tells you exactly which files are missing your entry, so it's tractable. Run it locally to find them all.
+These links stay static in the HTML (not JS-injected) so Bing, Yandex, and Baidu pick them up reliably — but you don't have to maintain them by hand.
 
 ### 7. OG image
 
@@ -140,7 +132,7 @@ You can ship one image for both versions, or two (`og-image-<code>.png` and `og-
    No `rsvg-convert`? Inkscape, ImageMagick, or any SVG→PNG tool works.
 5. Update `og:image` and `twitter:image` in your two HTML files to point at the PNG.
 
-**Can't render locally? Ship the SVG and say so in the PR — we'll handle the PNG.**
+If you can't render locally, just ship the SVG. The push-to-main workflow runs `rsvg-convert` via `scripts/build-og-images.mjs` and generates the PNG for you. Your PR's `Check OG image freshness` step will warn that the PNG is missing — that's expected; ignore it.
 
 ## Non-Latin scripts (Cyrillic, CJK, Arabic, etc.)
 
@@ -168,21 +160,27 @@ Add `dir="rtl"` to the `<html>` tag. CSS doesn't have logical properties everywh
 
 ## The validation script
 
-Every PR runs `.github/workflows/validate.yml`, which executes `node scripts/check-translations.mjs`. It checks:
+The workflow has two phases:
+
+- **On PR:** `scripts/check-translations.mjs` runs and must pass. `scripts/sync-hreflang.mjs --check` and `scripts/build-og-images.mjs --check` also run, but only as informational status — drift there won't block your merge.
+- **On push to main:** the sync scripts run for real, commit the regenerated hreflang blocks and any missing PNGs back with `[skip ci]`, which triggers Cloudflare to redeploy.
+
+`check-translations.mjs` checks:
 
 - Your `translations.json` entry exists and has all required fields
 - The smooth + angry files exist at the expected paths
-- Every other HTML file has an `hreflang` line pointing at yours
 - Canonical URLs and og:url use `https://dontpastetheai.com/...`
-- The OG image (or at minimum the SVG) is present
+- The OG image SVG is present (PNG is rendered by CI if missing)
 
-Run it locally before pushing:
+You can run all three locally before pushing:
 
 ```bash
 node scripts/check-translations.mjs
+node scripts/sync-hreflang.mjs
+node scripts/build-og-images.mjs   # needs rsvg-convert installed
 ```
 
-It'll tell you exactly what's missing. Don't try to remember everything in this doc — let the script catch what you forgot.
+Don't try to remember everything in this doc — let the scripts catch what you forgot.
 
 ---
 

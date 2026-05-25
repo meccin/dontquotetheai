@@ -1,0 +1,57 @@
+name: Sync hreflang + OG images
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: sync-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install rsvg-convert and fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y librsvg2-bin fontconfig fonts-noto-cjk fonts-noto-color-emoji
+          mkdir -p ~/.local/share/fonts
+          curl -fsSL "https://cdn.jsdelivr.net/fontsource/fonts/special-elite@latest/latin-400-normal.ttf" -o ~/.local/share/fonts/special-elite.ttf
+          curl -fsSL "https://cdn.jsdelivr.net/fontsource/fonts/jetbrains-mono@latest/latin-400-normal.ttf" -o ~/.local/share/fonts/jetbrains-mono-400.ttf
+          curl -fsSL "https://cdn.jsdelivr.net/fontsource/fonts/jetbrains-mono@latest/latin-700-normal.ttf" -o ~/.local/share/fonts/jetbrains-mono-700.ttf
+          curl -fsSL "https://cdn.jsdelivr.net/fontsource/fonts/ma-shan-zheng@latest/chinese-simplified-400-normal.ttf" -o ~/.local/share/fonts/ma-shan-zheng.ttf || true
+          curl -fsSL "https://cdn.jsdelivr.net/fontsource/fonts/lxgw-wenkai-tc@latest/chinese-traditional-400-normal.ttf" -o ~/.local/share/fonts/lxgw-wenkai-tc.ttf || true
+          curl -fsSL "https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-tc@latest/chinese-traditional-400-normal.ttf" -o ~/.local/share/fonts/noto-sans-tc.ttf || true
+          fc-cache -f
+
+      - name: Sync hreflang blocks
+        run: node scripts/sync-hreflang.mjs
+
+      - name: Build OG images
+        run: node scripts/build-og-images.mjs
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "chore: sync hreflang + og images [skip ci]"
+            git push
+          else
+            echo "No changes to commit."
+          fi

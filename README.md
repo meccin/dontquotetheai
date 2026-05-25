@@ -12,7 +12,7 @@ Spiritual cousin of [nohello.net](https://nohello.net) and [dontasktoask.com](ht
 
 ## Translations
 
-> **Don't see your language?** Translations are how this page actually helps people. The whole process is in [TRANSLATING.md](TRANSLATING.md) and the GitHub Action will check most of it for you — you just need to translate the text. PRs welcome.
+> **Don't see your language?** Translations are how this page actually helps people. The whole process is in [TRANSLATING.md](TRANSLATING.md) — you don't need to touch hreflang or render PNGs, CI handles both. Just translate the text and open a PR.
 
 | Language | Smooth | Angry | OG image | Maintainer |
 |----------|--------|-------|----------|-----------|
@@ -47,7 +47,7 @@ CSS and assets live at the root (`/styles.css`, `/assets/`). Angry pages referen
 
 Static HTML. No build step. A few things worth knowing:
 
-- The language dropdown is built at runtime by `assets/translations.js` from `assets/translations.json`. Each HTML file ships a single `<option>` matching its own language as a no-JS fallback; the script clears that and repopulates from the JSON. Add a language once in the JSON and every page picks it up.
+- `assets/translations.json` is the single source of truth for languages. The language dropdown is built at runtime by `assets/translations.js` from it (each HTML file ships a single matching `<option>` as a no-JS fallback). A GitHub Action on push to main also runs `scripts/sync-hreflang.mjs` (regenerates the `<link rel="alternate" hreflang>` block between the `<!-- hreflang:start -->` / `<!-- hreflang:end -->` markers in every HTML file) and `scripts/build-og-images.mjs` (renders any missing PNGs from their SVG sources), then commits the result back — which triggers Cloudflare to redeploy. Translators just translate; CI keeps the cross-references consistent.
 - `<link rel="alternate" hreflang="...">` tags stay **static** in each `<head>` on purpose — Googlebot renders JS but Bing / Yandex / Baidu are flaky about it, and we'd rather not gamble on SEO.
 - The copy button reads `location.hostname` so the same code works on both domains (dontpastetheai.com or dontquotetheai.com) — it copies whichever one the visitor landed on. The inline `<script>` that used to live in every HTML file got deduped into `assets/copy.js`; translatable strings come from `data-copy-aria` and `data-copied-text` attributes on the button itself.
 

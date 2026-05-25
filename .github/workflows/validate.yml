@@ -16,3 +16,11 @@ jobs:
           node-version: "20"
       - name: Validate translations
         run: node scripts/check-translations.mjs
+      - name: Check hreflang sync
+        run: node scripts/sync-hreflang.mjs --check
+        continue-on-error: true
+      - name: Check OG image freshness
+        run: |
+          sudo apt-get update && sudo apt-get install -y librsvg2-bin
+          node scripts/build-og-images.mjs --check
+        continue-on-error: true
